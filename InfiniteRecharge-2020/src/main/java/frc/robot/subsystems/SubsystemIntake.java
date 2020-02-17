@@ -8,8 +8,8 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.Util;
@@ -17,15 +17,17 @@ import frc.robot.util.Util;
 public class SubsystemIntake extends SubsystemBase {
   
   private TalonSRX 
-    mainIntake,
-    feedIntake;
+    eater,
+    slapper;
 
   /**
    * Creates a new SubsystemIntake.
    */
   public SubsystemIntake() {
-    mainIntake = new TalonSRX(Constants.MAINFEEDER_ID);
-    feedIntake = new TalonSRX(Constants.FEEDINTAKE_ID);
+    eater = new TalonSRX(Constants.EATER_ID);
+    slapper = new TalonSRX(Constants.SLAPPER_ID);
+
+    configureMotors();
   }
 
   @Override
@@ -33,13 +35,25 @@ public class SubsystemIntake extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
-  public void startIntake(){
-    mainIntake.set(ControlMode.PercentOutput, Util.getAndSetDouble("Main Feeder Speed", 1));
-    feedIntake.set(ControlMode.PercentOutput, Util.getAndSetDouble("Main Turret Feeder Speed", 1));
+  public void driveEater(double percent) {
+    eater.set(ControlMode.PercentOutput, percent);
   }
 
-  public void stopIntake(){
-    mainIntake.set(ControlMode.PercentOutput, 0);
-    feedIntake.set(ControlMode.PercentOutput, 0);
+  public void driveSlapper(double percent) {
+    slapper.set(ControlMode.PercentOutput, percent);
+  }
+
+  public void stopMotors() {
+    eater.set(ControlMode.PercentOutput, 0);
+    slapper.set(ControlMode.PercentOutput, 0);
+  }
+  
+  private void configureMotors() {
+    NeutralMode mode = (Constants.INTAKE_BRAKING ? NeutralMode.Brake : NeutralMode.Coast);
+    eater.setNeutralMode(mode);
+    slapper.setNeutralMode(mode);
+
+    eater.setInverted(Constants.EATER_INVERT);
+    slapper.setInverted(Constants.SLAPPER_INVERT);
   }
 }

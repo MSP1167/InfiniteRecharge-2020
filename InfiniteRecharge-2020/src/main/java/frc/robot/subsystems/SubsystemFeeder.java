@@ -8,24 +8,26 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.Util;
 
 public class SubsystemFeeder extends SubsystemBase {
   
-  private TalonSRX
-    mainFeeder,
-    turretFeeder;
+  private TalonSRX 
+    beater, //orange spiral motor that pushes ball into turret
+    feeder; //accepts ball from beater and gives it to flywheel
 
   /**
    * Creates a new SubsystemFeeder.
    */
   public SubsystemFeeder() {
-    mainFeeder = new TalonSRX(Constants.MAINFEEDER_ID);
-    turretFeeder = new TalonSRX(Constants.TURRETFEEDER_ID);
+    beater = new TalonSRX(Constants.BEATER_ID);
+    feeder = new TalonSRX(Constants.FEEDER_ID);
+
+    configureMotors();
   }
 
   @Override
@@ -33,13 +35,25 @@ public class SubsystemFeeder extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
-  public void startFeeder(){
-    mainFeeder.set(ControlMode.PercentOutput, Util.getAndSetDouble("Main Feeder Speed", 1));
-    turretFeeder.set(ControlMode.PercentOutput, Util.getAndSetDouble("Main Turret Feeder Speed", 1));
+  public void driveBeater(double percent) {
+    beater.set(ControlMode.PercentOutput, percent);
   }
 
-  public void stopFeeder(){
-    mainFeeder.set(ControlMode.PercentOutput, 0);
-    turretFeeder.set(ControlMode.PercentOutput, 0);
+  public void driveFeeder(double percent) {
+    feeder.set(ControlMode.PercentOutput, percent);
+  }
+
+  public void stopMotors() {
+    beater.set(ControlMode.PercentOutput, 0);
+    feeder.set(ControlMode.PercentOutput, 0);
+  }
+
+  private void configureMotors() {
+    NeutralMode mode = (Constants.FEEDER_BRAKING ? NeutralMode.Brake : NeutralMode.Coast);
+    beater.setNeutralMode(mode);
+    feeder.setNeutralMode(mode);
+
+    beater.setInverted(Constants.BEATER_INVERT);
+    feeder.setInverted(Constants.FEEDER_INVERT);
   }
 }
