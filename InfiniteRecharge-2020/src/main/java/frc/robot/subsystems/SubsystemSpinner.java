@@ -16,29 +16,46 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.revrobotics.ColorSensorV3;
 import frc.robot.Constants;
 import frc.robot.util.Util;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner; 
 
 public class SubsystemSpinner extends SubsystemBase {
   private TalonSRX spinner; 
   private ColorSensorV3 sensor;
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
-  int rotations = 0;
-  double trueRotations;
-  Color detectedColor;
-  boolean prevRed = false;
+
+  private int rotations = 0;
+  private double trueRotations;
+  private Color detectedColor;
+  private boolean prevRed = false;
+
+  private double[]
+     localTargetRed = Constants.TARGET_RED,
+     localTargetGreen = Constants.TARGET_GREEN,
+     localTargetBlue = Constants.TARGET_BLUE,
+     localTargetYellow = Constants.TARGET_YELLOW;
+
+  private double displacement;
 
   public SubsystemSpinner() {
     spinner = new TalonSRX(Constants.SPINNER_ID);
     sensor = new ColorSensorV3(i2cPort);
     rotations = 0;
     trueRotations = 0;
+    displacement = Util.getAndSetDouble("Color Calibration Displacement", 20);
   }
 
   @Override
   public void periodic() {
+    detectedColor = sensor.getColor();
     // This method will be called once per scheduler run
-    //SmartDashboard.putNumber("RED", detectedColor.red*255);
-    //SmartDashboard.putNumber("BLUE", detectedColor.blue*255);
-    //SmartDashboard.putNumber("GREEN", detectedColor.green*255);
+    SmartDashboard.putNumber("RED", detectedColor.red*255.0);
+    SmartDashboard.putNumber("BLUE", detectedColor.blue*255.0);
+    SmartDashboard.putNumber("GREEN", detectedColor.green*255.0);
   }
   public void startSpinner(double speed) {
     spinner.set(ControlMode.PercentOutput, speed);
@@ -58,14 +75,14 @@ public class SubsystemSpinner extends SubsystemBase {
       rotations = 0;
       trueRotations = 0;
     }
-    if((Constants.TARGET_RED[0] < detectedColor.red*255 && detectedColor.red*255 < Constants.TARGET_RED[3]) && (Constants.TARGET_RED[1] < detectedColor.green*255 && detectedColor.green*255 < Constants.TARGET_RED[4]) && (Constants.TARGET_RED[2] < detectedColor.blue*255 && detectedColor.blue*255 < Constants.TARGET_RED[5])){
+    if((localTargetRed[0] < detectedColor.red*255.0 && detectedColor.red*255.0 < localTargetRed[3]) && (localTargetRed[1] < detectedColor.green*255.0 && detectedColor.green*255.0 < localTargetRed[4]) && (localTargetRed[2] < detectedColor.blue*255.0 && detectedColor.blue*255.0 < localTargetRed[5])){
       if(prevRed == false){
         prevRed = true;
         rotations++;
       }
     }
 
-    if(!((Constants.TARGET_RED[0] < detectedColor.red*255 && detectedColor.red*255 < Constants.TARGET_RED[3]) && (Constants.TARGET_RED[1] < detectedColor.green*255 && detectedColor.green*255 < Constants.TARGET_RED[4]) && (Constants.TARGET_RED[2] < detectedColor.blue*255 && detectedColor.blue*255 < Constants.TARGET_RED[5]))){
+    if(!((localTargetRed[0] < detectedColor.red*255.0 && detectedColor.red*255.0 < localTargetRed[3]) && (localTargetRed[1] < detectedColor.green*255.0 && detectedColor.green*255.0 < localTargetRed[4]) && (localTargetRed[2] < detectedColor.blue*255.0 && detectedColor.blue*255.0 < localTargetRed[5]))){
       prevRed = false;
       }
     trueRotations = rotations/2;
@@ -79,13 +96,19 @@ public class SubsystemSpinner extends SubsystemBase {
   public boolean spinColor(char colorToFind) {
     detectedColor = sensor.getColor();
     startSpinner(Util.getAndSetDouble("Spin Inhibitor", Constants.SPINNER_SPEED));
-    SmartDashboard.putNumber("RED", detectedColor.red*255);
-    SmartDashboard.putNumber("BLUE", detectedColor.blue*255);
-    SmartDashboard.putNumber("GREEN", detectedColor.green*255);
+    //SmartDashboard.putNumber("RED", detectedColor.red*255.0);
+    //SmartDashboard.putNumber("BLUE", detectedColor.blue*255.0);
+    //SmartDashboard.putNumber("GREEN", detectedColor.green*255.0);
+    
+    SmartDashboard.putBoolean("Found Red", false);
+    SmartDashboard.putBoolean("Found Green", false);
+    SmartDashboard.putBoolean("Found Blue", false);
+    SmartDashboard.putBoolean("Found Yellow", false);
+    
     switch(colorToFind){
       case 'R':
         //code for red
-        if((Constants.TARGET_RED[0] < detectedColor.red*255 && detectedColor.red*255 < Constants.TARGET_RED[3]) && (Constants.TARGET_RED[1] < detectedColor.green*255 && detectedColor.green*255 < Constants.TARGET_RED[4]) && (Constants.TARGET_RED[2] < detectedColor.blue*255 && detectedColor.blue*255 < Constants.TARGET_RED[5])){
+        if((localTargetRed[0] < detectedColor.red*255.0 && detectedColor.red*255.0 < localTargetRed[3]) && (localTargetRed[1] < detectedColor.green*255.0 && detectedColor.green*255.0 < localTargetRed[4]) && (localTargetRed[2] < detectedColor.blue*255.0 && detectedColor.blue*255.0 < localTargetRed[5])){
         stopSpinner();
         SmartDashboard.putBoolean("Found Red", true);
         SmartDashboard.putBoolean("Found Green", false);
@@ -96,7 +119,7 @@ public class SubsystemSpinner extends SubsystemBase {
         return false;
       case 'G':
         //code for green
-        if((Constants.TARGET_GREEN[0] < detectedColor.red*255 && detectedColor.red*255 < Constants.TARGET_GREEN[3]) && (Constants.TARGET_GREEN[1] < detectedColor.green*255 && detectedColor.green*255 < Constants.TARGET_GREEN[4]) && (Constants.TARGET_GREEN[2] < detectedColor.blue*255 && detectedColor.blue*255 < Constants.TARGET_GREEN[5])){
+        if((localTargetGreen[0] < detectedColor.red*255.0 && detectedColor.red*255.0 < localTargetGreen[3]) && (localTargetGreen[1] < detectedColor.green*255.0 && detectedColor.green*255.0 < localTargetGreen[4]) && (localTargetGreen[2] < detectedColor.blue*255.0 && detectedColor.blue*255.0 < localTargetGreen[5])){
         stopSpinner();
         SmartDashboard.putBoolean("Found Red", false);
         SmartDashboard.putBoolean("Found Green", true);
@@ -107,7 +130,7 @@ public class SubsystemSpinner extends SubsystemBase {
         return false;
       case 'B':
         //code for blue
-        if((Constants.TARGET_BLUE[0] < detectedColor.red*255 && detectedColor.red*255 < Constants.TARGET_BLUE[3]) && (Constants.TARGET_BLUE[1] < detectedColor.green*255 && detectedColor.green*255 < Constants.TARGET_BLUE[4]) && (Constants.TARGET_BLUE[2] < detectedColor.blue*255 && detectedColor.blue*255 < Constants.TARGET_BLUE[5])){
+        if((localTargetBlue[0] < detectedColor.red*255.0 && detectedColor.red*255.0 < localTargetBlue[3]) && (localTargetBlue[1] < detectedColor.green*255.0 && detectedColor.green*255.0 < localTargetBlue[4]) && (localTargetBlue[2] < detectedColor.blue*255.0 && detectedColor.blue*255.0 < localTargetBlue[5])){
         stopSpinner();
         SmartDashboard.putBoolean("Found Red", false);
         SmartDashboard.putBoolean("Found Green", true);
@@ -118,7 +141,7 @@ public class SubsystemSpinner extends SubsystemBase {
         return false;
       case 'Y':
         //code for yellow
-        if((Constants.TARGET_YELLOW[0] < detectedColor.red*255 && detectedColor.red*255 < Constants.TARGET_YELLOW[3]) && (Constants.TARGET_YELLOW[1] < detectedColor.green*255 && detectedColor.green*255 < Constants.TARGET_YELLOW[4]) && (Constants.TARGET_YELLOW[2] < detectedColor.blue*255 && detectedColor.blue*255 < Constants.TARGET_YELLOW[5])){
+        if((localTargetYellow[0] < detectedColor.red*255.0 && detectedColor.red*255.0 < localTargetYellow[3]) && (localTargetYellow[1] < detectedColor.green*255.0 && detectedColor.green*255.0 < localTargetYellow[4]) && (localTargetYellow[2] < detectedColor.blue*255.0 && detectedColor.blue*255.0 < localTargetYellow[5])){
         stopSpinner();
         SmartDashboard.putBoolean("Found Red", false);
         SmartDashboard.putBoolean("Found Green", false);
@@ -135,5 +158,127 @@ public class SubsystemSpinner extends SubsystemBase {
         SmartDashboard.putBoolean("Found Yellow", false);
         return false;
       }
+  }
+  public void calibrateRed(){
+    detectedColor = sensor.getColor();
+      localTargetRed[0] = detectedColor.red   *255.0 - displacement;
+      localTargetRed[1] = detectedColor.green *255.0 - displacement;
+      localTargetRed[2] = detectedColor.blue  *255.0 - displacement;
+      localTargetRed[3] = detectedColor.red   *255.0 + displacement;
+      localTargetRed[4] = detectedColor.green *255.0 + displacement;
+      localTargetRed[5] = detectedColor.blue  *255.0 + displacement;
+  }
+  public void calibrateGreen(){
+    detectedColor = sensor.getColor();
+      localTargetGreen[0] = detectedColor.red   *255.0 - displacement;
+      localTargetGreen[1] = detectedColor.green *255.0 - displacement;
+      localTargetGreen[2] = detectedColor.blue  *255.0 - displacement;
+      localTargetGreen[3] = detectedColor.red   *255.0 + displacement;
+      localTargetGreen[4] = detectedColor.green *255.0 + displacement;
+      localTargetGreen[5] = detectedColor.blue  *255.0 + displacement;
+  }
+  public void calibrateBlue(){
+    detectedColor = sensor.getColor();
+      localTargetBlue[0] = detectedColor.red   *255.0 - displacement;
+      localTargetBlue[1] = detectedColor.green *255.0 - displacement;
+      localTargetBlue[2] = detectedColor.blue  *255.0 - displacement;
+      localTargetBlue[3] = detectedColor.red   *255.0 + displacement;
+      localTargetBlue[4] = detectedColor.green *255.0 + displacement;
+      localTargetBlue[5] = detectedColor.blue  *255.0 + displacement;
+  }
+  public void calibrateYellow(){
+    detectedColor = sensor.getColor();
+      localTargetYellow[0] = detectedColor.red   *255.0 - displacement;
+      localTargetYellow[1] = detectedColor.green *255.0 - displacement;
+      localTargetYellow[2] = detectedColor.blue  *255.0 - displacement;
+      localTargetYellow[3] = detectedColor.red   *255.0 + displacement;
+      localTargetYellow[4] = detectedColor.green *255.0 + displacement;
+      localTargetYellow[5] = detectedColor.blue  *255.0 + displacement;
+  }
+  public boolean saveCalibration(String fileName){
+    File tempFile = new File("TEMP"); 
+    String pathname = tempFile.getAbsolutePath();
+    tempFile.delete();
+    String[] pathDir = pathname.split("/");
+    int pathDirMaxSeg = pathDir.length - 1;
+    String finalPathDir;
+    for(int i = 0; i < pathDirMaxSeg - 6; i++){
+      finalPathDir = pathDir[i] + "/";
+    }
+    // V Uncomment if need to make file V
+    //File saveFile = new File(finalPathDir + "calibrationsave.txt");
+    try {
+      FileWriter saveCalibration = new FileWriter("calibrationsave.txt");
+      // Save red
+      for(int i = 0; i < 6; i++){
+        saveCalibration.write(String.valueOf(localTargetRed[i]));
+        saveCalibration.write("\\");
+      }
+      saveCalibration.write("\n");
+      // Save green
+      for(int i = 0; i < 6; i++){
+        saveCalibration.write(String.valueOf(localTargetGreen[i]));
+        saveCalibration.write("\\");
+      }
+      saveCalibration.write("\n");
+      // Save blue
+      for(int i = 0; i < 6; i++){
+        saveCalibration.write(String.valueOf(localTargetBlue[i]));
+        saveCalibration.write("\\");
+      }
+      saveCalibration.write("\n");
+      // Save yellow
+      for(int i = 0; i < 6; i++){
+        saveCalibration.write(String.valueOf(localTargetYellow[i]));
+        saveCalibration.write("\\");
+      }
+      saveCalibration.write("\n");
+      saveCalibration.close();
+      return true;
+    } 
+    catch (IOException e) {
+      //add the code to write to driver station
+      System.out.println("An error occurred.");
+      return false;
+    }
+  }
+  public boolean loadCalibration(){
+    File tempFile = new File("TEMP"); 
+    String pathname = tempFile.getAbsolutePath();
+    tempFile.delete();
+    String[] pathDir = pathname.split("/");
+    int pathDirMaxSeg = pathDir.length - 1;
+    String finalPathDir;
+    for(int i = 0; i < pathDirMaxSeg - 6; i++){
+      finalPathDir = pathDir[i] + "/";
+    }
+    String tempString = "";
+    File calibrationSave = new File(finalPathDir + "calibrationsave.txt");
+    Scanner fileScanner = new Scanner(calibrationSave).useDelimiter("\\");;
+    List<String> temps = new ArrayList<String>();
+    while (fileScanner.hasNext()) {
+      // find next line
+      tempString = fileScanner.next();
+      temps.add(tempString);
+    }
+    fileScanner.close();
+    Double[] tempsArray = temps.toArray(new Double[0]);
+    int k = 0;
+    for (Double d : tempsArray) {
+      if (k < 6){
+        localTargetRed[k] = d;
+      }
+      if (k > 5 && k < 12){
+        localTargetGreen[k-6] = d;
+      }
+      if (k > 11 && k < 18){
+        localTargetBlue[k-12] = d;
+      }
+      if (k > 17){
+        localTargetYellow[k-18] = d;
+      }
+      k++;
+    }
+    return true;
   }
 }

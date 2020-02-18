@@ -21,44 +21,52 @@ public final class Constants {
      * Drivetrain Motor IDs
      */
     public static final int
-        DRIVE_RIGHT_MASTER_ID = 0,
-        DRIVE_RIGHT_SLAVE_ID  = 0,
-        DRIVE_LEFT_MASTER_ID  = 0,
-        DRIVE_LEFT_SLAVE_ID   = 0;
+        DRIVE_RIGHT_MASTER_ID = 3, //spark
+        DRIVE_RIGHT_SLAVE_ID  = 4, //spark
+        DRIVE_LEFT_MASTER_ID  = 1, //spark
+        DRIVE_LEFT_SLAVE_ID   = 2; //spark
 
     /**
      * Turret Motor IDs
      */
     public static final int
-        TURRET_YAW_ID      = 0,
-        TURRET_PITCH_ID    = 0,
-        TURRET_FLYWHEEL_ID = 0;
+        TURRET_YAW_ID      = 8,
+        TURRET_PITCH_ID    = 9,
+        TURRET_FLYWHEEL_ID = 7; //spark
 
     /**
      * Climber Motor IDs
      */
     public static final int
-        CLIMBER_ID = 0;
+        CLIMBER_SCISSOR_ID = 5, //spark
+        CLIMBER_WINCH_ID = 6;   //spark
 
     /**
-     * Spinner IDs
+     * Spinner Motor IDs
      */
     public static final int
-        SPINNER_ID = 5;
+        SPINNER_ID = 10;
 
-    /**
-     * Intake IDs
-     */
+  /**
+   * Intake IDs
+   */
     public static final int
         MAININTAKE_ID = 0,
         FEEDINTAKE_ID = 0;
     
     /**
-     * Feeder IDs
+     * Intake Motor IDs
      */
     public static final int
-        MAINFEEDER_ID = 0,
-        TURRETFEEDER_ID = 0;
+        EATER_ID = 11,
+        SLAPPER_ID = 12;
+
+    /**
+     * Feeder Motor IDs
+     */
+    public static final int
+        BEATER_ID = 13,
+        FEEDER_ID = 14;
     
     /**
      * Drivetrain motor inverts
@@ -66,8 +74,8 @@ public final class Constants {
     public static final boolean
         DRIVE_RIGHT_MASTER_INVERT = false,
         DRIVE_RIGHT_SLAVE_INVERT  = false,
-        DRIVE_LEFT_MASTER_INVERT  = false,
-        DRIVE_LEFT_SLAVE_INVERT   = false;
+        DRIVE_LEFT_MASTER_INVERT  = true,
+        DRIVE_LEFT_SLAVE_INVERT   = true;
 
     /**
      * Turret Motor Inverts
@@ -75,29 +83,68 @@ public final class Constants {
     public static final boolean
         TURRET_YAW_INVERT      = false,
         TURRET_PITCH_INVERT    = false,
-        TURRET_FLYWHEEL_INVERT = false;
+        TURRET_FLYWHEEL_INVERT = true;
 
     /**
      * Climber Inverts
      */
     public static final boolean
-        CLIMBER_INVERT = false;
+        CLIMBER_SCISSOR_INVERT = false,
+        CLIMBER_WINCH_INVERT   = false;
 
     /**
      * Spinner Inverts
      */
     public static final boolean
         SPINNER_INVERT = false;
+
+    /**
+     * Intake Motor Inverts
+     */
+    public static final boolean
+        EATER_INVERT   = false,
+        SLAPPER_INVERT = false;
+
+    /**
+     * Feeder Motor Inverts
+     */
+    public static final boolean
+        BEATER_INVERT = false,
+        FEEDER_INVERT = false;
+
+    /**
+     * Braking Values
+     */
+    public static final boolean
+        INTAKE_BRAKING = true,
+        FEEDER_BRAKING = true;
+
+    /**
+     * Amp Limits
+     */
+    public static int
+        FLYWHEEL_AMP_LIMIT = 50;
     
     /*
     * FORMAT: Red_Min, Green_Min, Blue_Min, Red_Max, Green_Max, Blue_Max.
     */
-    public static final int[]
-        TARGET_RED = {200,0,0,255,25,25},
-        TARGET_GREEN = {0,200,0,25,255,25},
-        TARGET_BLUE = {0,200,200,25,255,255},
-        TARGET_YELLOW = {200,200,0,255,255,25};
-  
+    public static final double[]
+        TARGET_RED    = { 99 , 90 , 35 , 119, 110, 55  },
+        TARGET_GREEN  = { 42 , 126, 56 , 62 , 146, 76  },
+        TARGET_BLUE   = { 36 , 103, 85 , 56 , 123, 105 },
+        TARGET_YELLOW = { 75 , 127, 22 , 95 , 147, 42  };
+    
+    /**
+     * Extraneous values
+     */
     public static final int
-        SPINNER_SPEED = 1;
+        SPINNER_SPEED = 1,
+        TURRET_YAW_DEGREES = 345,
+        TURRET_PITCH_DEGREES = 100;
+
+    public static final double 
+        FLYWHEEL_GEAR_RATIO = 1.6071;
+
+    public static final boolean
+        DRIVE_CAMERA_AUTOMATIC_EXPOSURE = true;
 }
